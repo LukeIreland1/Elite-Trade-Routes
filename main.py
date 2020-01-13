@@ -4,6 +4,7 @@ import sys
 import urllib.request
 from pathlib import Path
 from urllib.request import urlretrieve
+from operator import itemgetter
 
 ROOT = Path(__file__).parent
 
@@ -12,7 +13,7 @@ UPDATED_SYSTEMS_URL = "https://eddb.io/archive/v6/systems_recently.csv"
 POPULATED_SYSTEMS_URL = "https://eddb.io/archive/v6/systems_populated.json"
 BODIES_URL = "https://eddb.io/archive/v6/bodies.jsonl"
 UPDATED_BODIES_URL = "https://eddb.io/archive/v6/bodies_recently.jsonl"
-STATIONS_URL = "https://eddb.io/archive/v6/stations.json" 
+STATIONS_URL = "https://eddb.io/archive/v6/stations.json"
 FACTIONS_URL = "https://eddb.io/archive/v6/factions.json"
 LISTINGS_URL = "https://eddb.io/archive/v6/listings.csv"
 COMMODITIES_URL = "https://eddb.io/archive/v6/commodities.json"
@@ -22,6 +23,7 @@ systems = dict()
 commodities = dict()
 listings = dict()
 
+
 def reporthook(blocknum, blocksize, totalsize):
     readsofar = blocknum * blocksize
     if totalsize > 0:
@@ -29,10 +31,11 @@ def reporthook(blocknum, blocksize, totalsize):
         s = "\r%5.1f%% %*d / %d" % (
             percent, len(str(totalsize)), readsofar, totalsize)
         sys.stderr.write(s)
-        if readsofar >= totalsize: # near the end
+        if readsofar >= totalsize:  # near the end
             sys.stderr.write("\n")
-    else: # total size is unknown
+    else:  # total size is unknown
         sys.stderr.write("read %d\n" % (readsofar,))
+
 
 def download(url, path):
     if not path.exists():
@@ -47,6 +50,7 @@ def download(url, path):
             data = json.load(read_file)
     return data
 
+
 cache = ROOT.joinpath("cache")
 if cache.exists():
     if not cache.is_dir():
@@ -59,9 +63,18 @@ listings_path = cache.joinpath("listings.csv")
 listings_data = download(LISTINGS_URL, listings_path)
 
 stations_path = cache.joinpath("stations.json")
-stations_data = download(stations_URL, stations_path)
+# stations_data = download(STATIONS_URL, stations_path)
 
 commodities_path = cache.joinpath("commodities.json")
-commodities_data = download(commodities_URL, commodities_path)
+commodities_data = download(COMMODITIES_URL, commodities_path)
 
-print(commodities_data)
+mgf_listings = []
+
+for listing in listings_data:
+    if listing["commodity_id"] == "304":
+        listing["sell_price"] = int(listing["sell_price"])
+        mgf_listings.append(listing)
+
+mgf_listings = sorted(mgf_listings, key=itemgetter('sell_price'), reverse=True)[:10]
+
+print(mgf_listings)
