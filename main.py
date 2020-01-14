@@ -21,6 +21,8 @@ LISTINGS_URL = "https://eddb.io/archive/v6/listings.csv"
 COMMODITIES_URL = "https://eddb.io/archive/v6/commodities.json"
 MODULES_URL = "https://eddb.io/archive/v6/modules.json"
 
+FORCE_UPDATE = True
+
 systems = dict()
 commodities = dict()
 listings = dict()
@@ -40,7 +42,7 @@ def reporthook(blocknum, blocksize, totalsize):
 
 
 def download(url, path):
-    if not path.exists():
+    if not path.exists() or FORCE_UPDATE:
         print("Downloading {} data".format(path.name.split()[0]))
         urlretrieve(url, path, reporthook)
     data = []
@@ -70,7 +72,7 @@ else:
     pickles.mkdir()
 
 listings_pickle = pickles.joinpath("listings")
-if listings_pickle.exists():
+if listings_pickle.exists() and not FORCE_UPDATE:
     listings_data = pickle.load(open(listings_pickle, "rb"))
 else:
     listings_path = cache.joinpath("listings.csv")
@@ -78,7 +80,7 @@ else:
     pickle.dump(listings_data, open(listings_pickle, "wb"))
 
 stations_pickle = pickles.joinpath("stations")
-if stations_pickle.exists():
+if stations_pickle.exists() and not FORCE_UPDATE:
     stations_data = pickle.load(open(stations_pickle, "rb"))
 else:
     stations_path = cache.joinpath("stations.json")
@@ -86,7 +88,7 @@ else:
     pickle.dump(stations_data, open(stations_pickle, "wb"))
 
 commodities_pickle = pickles.joinpath("commodities")
-if commodities_pickle.exists():
+if commodities_pickle.exists() and not FORCE_UPDATE:
     commodities_data = pickle.load(open(commodities_pickle, "rb"))
 else:
     commodities_path = cache.joinpath("commodities.json")
@@ -95,7 +97,7 @@ else:
 
 
 populated_systems_pickle = pickles.joinpath("populated_systems")
-if populated_systems_pickle.exists():
+if populated_systems_pickle.exists() and not FORCE_UPDATE:
     populated_systems_data = pickle.load(open(populated_systems_pickle, "rb"))
 else:
     populated_systems_path = cache.joinpath("systems_populated.json")
